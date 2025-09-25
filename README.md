@@ -26,13 +26,3 @@
 - Ensures data privacy and security.
 
 ---
-
-## 🛠️ Tech Stack
-
-- **Frontend:** ReactJS  
-- **Backend:** Node.js / Python (API and server-side logic)  
-- **Database:** MongoDB  
-- **Maps & Geolocation:** Google Maps API  
-- **Notifications:** Email/SMS notifications  
-
----
