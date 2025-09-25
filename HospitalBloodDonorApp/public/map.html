@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donors Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 600px; /* Set the height of the map */
+            width: 100%;   /* Set the width of the map */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Donors Map</h1>
+        
+        <div class="search-controls">
+            <select id="blood-group">
+                <option value="">All Blood Groups</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+            </select>
+            
+            <select id="radius">
+                <option value="5">5 km</option>
+                <option value="10">10 km</option>
+                <option value="25">25 km</option>
+                <option value="50">50 km</option>
+            </select>
+            
+            <input type="text" id="hospital-address" placeholder="Enter hospital address">
+            <button id="search-btn">Search</button>
+        </div>
+        
+        <div id="map"></div> <!-- Map container -->
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize the map and set its view to a default location
+            var map = L.map('map').setView([20.5937, 78.9629], 5); // Centered on India
+
+            // Create red icon for hospital marker
+            var redIcon = new L.Icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+
+            // Variable to store hospital marker
+            var hospitalMarker = null;
+
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            // Function to load donors with filters
+            function loadDonors(bloodGroup = '', radius = 5, centerLat = null, centerLng = null) {
+                let url = 'http://localhost/HospitalBloodDonorApp/public/get_donors.php';
+                if (bloodGroup) url += `?blood_group=${bloodGroup}`;
+                if (centerLat && centerLng) url += `${bloodGroup ? '&' : '?'}lat=${centerLat}&lng=${centerLng}&radius=${radius}`;
+                
+                // Clear existing markers
+                map.eachLayer(layer => {
+                    if (layer instanceof L.Marker) {
+                        map.removeLayer(layer);
+                    }
+                });
+
+                fetch(url)
+
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    data.forEach(donor => {
+                        if (donor.latitude && donor.longitude) {
+                            var marker = L.marker([parseFloat(donor.latitude), parseFloat(donor.longitude)]).addTo(map);
+                            marker.bindPopup(`
+                                <b>${donor.name}</b><br>
+                                Blood Group: ${donor.blood_group}<br>
+                                ${donor.address}<br>
+                                Mobile: ${donor.mobile_number}
+                            `);
+                        } else {
+                            console.warn("Invalid donor coordinates:", donor);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching donor data:', error);
+                });
+            }
+
+            // Initial load
+            loadDonors();
+
+            // Search button handler
+            document.getElementById('search-btn').addEventListener('click', function() {
+                const address = document.getElementById('hospital-address').value;
+                
+                if (address) {
+                    // Geocode address to get coordinates
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.length > 0) {
+                                const lat = parseFloat(data[0].lat);
+                                const lng = parseFloat(data[0].lon);
+                                
+                                // Clear any existing hospital marker
+                                if (hospitalMarker) {
+                                    map.removeLayer(hospitalMarker);
+                                }
+                                
+                                // Add red marker at hospital location
+                                hospitalMarker = L.marker([lat, lng], {icon: redIcon})
+                                    .addTo(map)
+                                    .bindPopup(`<b>Hospital Location</b><br>${address}`);
+                                
+                                // Center map on hospital location
+                                map.setView([lat, lng], 15);
+                            } else {
+                                alert('Address not found');
+                            }
+                        });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

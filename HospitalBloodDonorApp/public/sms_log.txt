@@ -1,0 +1,19 @@
+[2025-03-28 22:03:00] SMS Sent to: 7499242665, Response: {"success":false,"message":"Invalid phone number."}
+[2025-03-28 22:03:00] SMS Sent to: 07499707395, Response: {"success":false,"message":"Invalid phone number."}
+[2025-03-28 22:05:56] ERROR: Phone number is missing
+[2025-03-28 22:05:59] ERROR: Phone number is missing
+[2025-03-28 22:06:00] ERROR: Phone number is missing
+[2025-03-28 22:06:00] ERROR: Phone number is missing
+[2025-03-28 22:06:00] ERROR: Phone number is missing
+[2025-03-28 22:07:02] SMS Sent to: 7499242665, Response: {"success":false,"message":"Invalid phone number."}
+[2025-03-28 22:07:02] SMS Sent to: 07499707395, Response: {"success":false,"message":"Invalid phone number."}
+[2025-03-28 22:07:10] ERROR: Phone number is missing
+[2025-03-28 22:07:11] ERROR: Phone number is missing
+[2025-03-28 22:07:12] ERROR: Phone number is missing
+[2025-03-28 22:07:12] ERROR: Phone number is missing
+[2025-03-28 22:07:12] ERROR: Phone number is missing
+[2025-03-28 22:07:12] ERROR: Phone number is missing
+[2025-03-28 22:07:47] SMS Sent to: 7499242665, Response: {"success":false,"message":"Invalid phone number."}
+[2025-03-28 22:07:47] SMS Sent to: 07499707395, Response: {"success":false,"message":"Invalid phone number."}
+2025-03-28 22:11:19 | Phone: 7499242665 | Status: Unknown error
+

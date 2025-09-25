@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Profile Creation</title>
+    <link rel="stylesheet" href="../css/styles.css"> <!-- Link to the CSS file -->
+</head>
+<body>
+    <div class="container">
+        <div class="header-container">
+            <img src="../images/1692006126220-580263166.jpg" alt="Hospital Logo" class="logo">
+            <h1 class="hospital-name">KIMS-KINGSWAY HOSPITAL</h1>
+            <h2 class="map-title">DONORS REGISTRATION</h2>
+        </div>
+        <form action="submit.php" method="POST">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+            
+            
+            <label for="sex">Sex:</label>
+            <select id="sex" name="sex" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+            
+            <label for="blood_group">Blood Group:</label>
+            <select id="blood_group" name="blood_group" required>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+            </select>
+            
+            <label for="mobile_number">Mobile Number:</label>
+            <input type="text" id="mobile_number" name="mobile_number" required>
+            
+            <label for="address">Address:</label>
+            <textarea id="address" name="address" required></textarea>
+
+            <label for="last_donation">Last Donation Date:</label>
+            <input type="date" id="last_donation" name="last_donation">
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="is_available" name="is_available" checked>
+                <label for="is_available">Currently Available to Donate</label>
+            </div>
+            
+            <input type="submit" value="Create Profile" class="btn">
+        </form>
+            <div class="links">
+                <a href="search.html" class="link">Search for Donors</a>
+            </div>
+    </div>
+</body>
+</html>

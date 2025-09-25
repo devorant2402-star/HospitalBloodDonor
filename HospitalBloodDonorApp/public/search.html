@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donors Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary-color: #1a4b8c;
+            --secondary-color: #2a6fdb;
+            --light-color: #e6f0ff;
+            --dark-color: #0d2b56;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background: white;
+            box-sizing: border-box;
+            display: flex;
+            gap: 20px;
+        }
+
+        .form-container {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .map-container {
+            flex: 3;
+        }
+
+        .header-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            height: 80px;
+            width: auto;
+            max-width: 120px;
+            object-fit: contain;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .hospital-name {
+            color: #1a4b8c;
+            text-align: center;
+            margin: 0;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        .map-title {
+            color: #1a4b8c;
+            text-align: center;
+            margin: 5px 0 0 0;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        #map {
+            height: calc(100vh - 40px);
+            width: 100%;
+            box-shadow: var(--box-shadow);
+        }
+
+        .filter-container {
+            background-color: var(--light-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #c1121f;
+            transform: translateY(-2px);
+        }
+
+        .results-container {
+            margin-top: 20px;
+            background-color: var(--light-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        #donorResults {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        #donorResults thead {
+            position: sticky;
+            top: 0;
+            background-color: var(--secondary-color);
+            z-index: 1;
+        }
+
+        #donorResults th, #donorResults td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #donorResults th {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        #donorResults tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 15px;
+            }
+            
+            #map {
+                height: 400px;
+            }
+            
+            button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <div class="header-container">
+                <img src="../images/1692006126220-580263166.jpg" alt="Hospital Logo" class="logo">
+                <h1 class="hospital-name">KIMS-KINGSWAY HOSPITAL</h1>
+                <h2 class="map-title">DONORS MAP</h2>
+            </div>
+            
+            <div class="filter-container">
+                <label for="blood_group">Select Blood Group:</label>
+                <select id="blood_group">
+                    <option value="">All</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                </select>
+                
+                <div style="margin-top: 10px;">
+                    <label for="radius">Search Radius (km):</label>
+                    <input type="number" id="radius" min="1" max="100" value="5">
+                </div>
+                
+                <div style="margin-top: 10px;">
+                    <button id="searchButton">Search</button>
+                </div>
+            </div>
+
+            <div class="results-container">
+                <h2>Donor Results</h2>
+                <table id="donorResults">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Blood Group</th>
+                            <th>Phone Number</th>
+                            <th>Distance (km)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Results will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+        
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                document.getElementById("searchButton").addEventListener("click", filterDonors);
+            });
+
+            // Initialize Map
+            var map = L.map('map').setView([20.5937, 78.9629], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            let markers = [];
+            let allDonors = [];
+
+            // Calculate distance between two coordinates in km
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371; // Earth radius in km
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = 
+                    Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            }
+
+            function loadDonors() {
+                console.log("Fetching donor data...");
+                fetch("get_donors.php")
+                    .then(response => {
+                        console.log("Response received, status:", response.status);
+                        if (!response.ok) {
+                            throw new Error(`Server returned status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(response => {
+                        console.log("Donors fetched:", response);
+                        if (!response || !response.success) {
+                            throw new Error(response?.message || "No donors found");
+                        }
+                        allDonors = response.donors || [];
+                        console.log("Number of donors:", allDonors.length);
+                        if (allDonors.length === 0) {
+                            alert("Data saved successfully. No matching donors found in database.");
+                        } else {
+                            displayDonors(allDonors);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        alert("Data saved successfully. " + (error.message.includes("Invalid") ? 
+                              "Please check server response format" : 
+                              error.message));
+                    });
+            }
+
+            const geocodeCache = {};
+
+            async function geocodeAddress(address) {
+                if (geocodeCache[address]) {
+                    return geocodeCache[address];
+                }
+
+                const apiKey = 'ebdddbdc2db647408baefd2c121fd4d2';
+                const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(address)}&key=${apiKey}`;
+
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (data.results && data.results.length > 0) {
+                        const location = data.results[0].geometry;
+                        geocodeCache[address] = location;
+                        return location;
+                    }
+                    return null;
+                } catch (error) {
+                    console.error("Geocoding error:", error);
+                    return null;
+                }
+            }
+
+            async function displayDonors(donors) {
+                console.log("Displaying donors:", donors);
+                markers.forEach(marker => map.removeLayer(marker));
+                markers = [];
+                
+                // Clear previous results
+                const resultsTable = document.getElementById('donorResults').querySelector('tbody');
+                resultsTable.innerHTML = '';
+
+                if (!donors || donors.length === 0) {
+                    console.warn("No donors received");
+                    alert("No donors found");
+                    return;
+                }
+
+                const bounds = L.latLngBounds([]);
+                let validMarkers = 0;
+                let invalidMarkers = 0;
+
+                for (const donor of donors) {
+                    try {
+                        console.log("Processing donor:", donor);
+                        
+                        if (!donor || !donor.address) {
+                            console.warn("Missing address for donor:", donor);
+                            invalidMarkers++;
+                            continue;
+                        }
+
+                        const location = await geocodeAddress(donor.address);
+                        if (!location) {
+                            console.warn("Could not geocode address:", donor.address);
+                            invalidMarkers++;
+                            continue;
+                        }
+
+                        console.log("Creating marker at:", location.lat, location.lng);
+                        var marker = L.marker([location.lat, location.lng]).addTo(map);
+                        marker.bindPopup(`
+                            <b>${donor.name}</b><br>
+                            Blood Group: ${donor.blood_group}<br>
+                            ${donor.address}<br>
+                            Mobile: ${donor.mobile_number}
+                        `);
+                        markers.push(marker);
+                        bounds.extend([location.lat, location.lng]);
+                        validMarkers++;
+
+                        // Add to results table
+                        const resultsTable = document.getElementById('donorResults').querySelector('tbody');
+                        const row = resultsTable.insertRow();
+                        row.insertCell(0).textContent = donor.name;
+                        row.insertCell(1).textContent = donor.blood_group;
+                        row.insertCell(2).textContent = donor.mobile_number;
+                        
+                        // Calculate distance if hospitalLocation exists
+                        if (hospitalLocation) {
+                            const distance = calculateDistance(
+                                hospitalLocation.lat, 
+                                hospitalLocation.lng,
+                                location.lat,
+                                location.lng
+                            );
+                            row.insertCell(3).textContent = distance.toFixed(2);
+                        } else {
+                            row.insertCell(3).textContent = 'N/A';
+                        }
+                    } catch (error) {
+                        console.error("Error creating marker for donor:", donor, error);
+                        invalidMarkers++;
+                    }
+                }
+
+                console.log(`Created ${validMarkers} valid markers, ${invalidMarkers} invalid donors`);
+                
+                if (validMarkers > 0) {
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                } else {
+                    console.warn("No valid markers created");
+                    alert("No donors with valid location data found");
+                }
+            }
+
+            let searchCircle = null;
+            let hospitalLocation = null;
+
+            function filterDonors() {
+                // Hardcoded coordinates for SPANV Medisearch Lifesciences Pvt. Ltd
+                hospitalLocation = { lat: 21.1546558, lng: 79.0848535 };
+                performSearch();
+            }
+
+            function performSearch() {
+                var bloodGroup = document.getElementById("blood_group").value;
+                var radius = document.getElementById("radius").value;
+                url = "get_donors.php";
+                
+                if (searchCircle) {
+                    map.removeLayer(searchCircle);
+                }
+                
+                // Remove previous hospital marker if exists
+                if (window.hospitalMarker) {
+                    map.removeLayer(window.hospitalMarker);
+                }
+
+                // Add new hospital marker (same style as donor markers but red)
+                window.hospitalMarker = L.marker([hospitalLocation.lat, hospitalLocation.lng], {
+                    icon: L.divIcon({
+                        className: 'hospital-marker',
+                        html: '<div style="background-color:red;width:20px;height:20px;border-radius:50%;border:2px solid white;box-shadow:0 0 5px rgba(0,0,0,0.5);"></div>',
+                        iconSize: [24, 24]
+                    })
+                }).addTo(map)
+                .bindPopup(`<b>Hospital Location</b><br>SPANV Medisearch Lifesciences Pvt. Ltd, 44, Kingsway Rd, near Kasturchand Park, Mohan Nagar, Nagpur, Maharashtra 440001`);
+
+                searchCircle = L.circle([hospitalLocation.lat, hospitalLocation.lng], {
+                    color: 'red',
+                    fillColor: '#f03',
+                    fillOpacity: 0.2,
+                    radius: radius * 1000
+                }).addTo(map);
+                
+                url += `?lat=${hospitalLocation.lat}&lng=${hospitalLocation.lng}&radius=${radius}`;
+                if (bloodGroup) {
+                    url += `&blood_group=${encodeURIComponent(bloodGroup)}`;
+                }
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error("API error:", data.message || data.error);
+                            alert(data.message || "Error fetching donor data");
+                        } else {
+                            displayDonors(data.donors || []);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching donor data:", error);
+                    });
+            }
+
+            function sendSMSAlert() {
+                var bloodGroup = document.getElementById("blood_group").value;
+
+                if (!bloodGroup) {
+                    alert("Please select a blood group first!");
+                    return;
+                }
+
+                let phoneNumbers = allDonors
+                    .filter(donor => donor.blood_group === bloodGroup)
+                    .map(donor => donor.mobile_number);
+
+                if (phoneNumbers.length === 0) {
+                    alert("No donors found for this blood group.");
+                    return;
+                }
+
+                phoneNumbers.forEach(number => {
+                    fetch("http://localhost/HospitalBloodDonorApp/HospitalBloodDonorApp/public/send_sms.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ phone: number })
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            console.log(`SMS sent to ${number}`);
+                        } else {
+                            console.error(`Failed to send SMS to ${number}:`, result.error);
+                        }
+                    });
+                });
+
+                alert("SMS notifications sent to donors!");
+            }
+
+            loadDonors();
+        </script>
+    </div>
+</body>
+</html>
